@@ -574,12 +574,22 @@
   var TOTAL   = pages.length;
   var current = 0;
 
+  function getPageDims() {
+    var availH = window.innerHeight - 52 - 16;
+    var availW = window.innerWidth - 16;
+    var h = Math.min(availH, 680);
+    var w = Math.round(h * 390 / 700);
+    if (w > availW) { w = availW; h = Math.round(w * 700 / 390); }
+    return { w: Math.floor(w), h: Math.floor(h) };
+  }
+
+  var d = getPageDims();
   var pageFlip = new St.PageFlip(document.getElementById('book'), {
-    width:    390,
-    height:   700,
-    size:     'stretch',
-    minWidth: 180, maxWidth: 520,
-    minHeight:330, maxHeight:930,
+    width:    d.w,
+    height:   d.h,
+    size:     'fixed',
+    minWidth: 150, maxWidth: 520,
+    minHeight:270, maxHeight:700,
     usePortrait:        true,
     autoSize:           true,
     showCover:          true,
