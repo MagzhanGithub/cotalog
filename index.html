@@ -18,84 +18,66 @@
     }
 
     #app {
-      position: fixed; inset: 0;
+      width: 100%; height: 100%;
       display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
     }
 
-    /* perspective lives here so rotateY gets real 3-D depth */
-    #stage-wrap {
-      flex: 1;
+    #book-wrapper {
+      flex: 1; width: 100%;
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
-      perspective: 1400px;
-      perspective-origin: center center;
     }
 
-    #stage {
-      position: relative;
-      width: 390px; height: 700px;
-      flex-shrink: 0;
+    /* outer div gets transform:scale() — StPageFlip inside stays at 390×700 */
+    #book-outer {
       transform-origin: center center;
-      visibility: hidden;
-      filter: drop-shadow(0 16px 48px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 16px 56px rgba(0,0,0,0.8));
     }
-    #stage.ready { visibility: visible; }
-
-    /* ── pages ── */
-    .pg {
-      position: absolute; inset: 0;
-      overflow: hidden;
-      background: #FAF7F2;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      will-change: transform;
-    }
-    .pg.off { display: none; }
 
     /* ── bottom bar ── */
-    #bar {
-      height: 54px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; gap: 16px;
+    #bottom-bar {
+      height: 52px; width: 100%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; gap: 14px;
     }
-    .btn {
-      width: 40px; height: 40px; border-radius: 50%;
+    #page-counter {
+      color: rgba(201,168,76,0.85);
+      background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.20);
+      padding: 5px 18px; border-radius: 20px;
+      font-size: 12px; letter-spacing: 1.5px;
+      font-family: -apple-system, sans-serif;
+    }
+    .nav-btn {
       background: rgba(201,168,76,0.10);
-      border: 1px solid rgba(201,168,76,0.28);
-      color: rgba(201,168,76,0.9);
-      font-size: 26px; line-height: 1;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(201,168,76,0.25);
+      color: rgba(201,168,76,0.85);
+      width: 38px; height: 38px; border-radius: 50%;
+      font-size: 24px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
       transition: background 0.18s;
       -webkit-tap-highlight-color: transparent;
     }
-    .btn:hover  { background: rgba(201,168,76,0.22); }
-    .btn:active { background: rgba(201,168,76,0.35); }
-    .btn:disabled { opacity: 0.15; pointer-events: none; }
-    #ctr {
-      min-width: 78px; text-align: center;
-      font-size: 12px; letter-spacing: 1.5px;
-      color: rgba(201,168,76,0.8);
-      background: rgba(201,168,76,0.07);
-      border: 1px solid rgba(201,168,76,0.18);
-      padding: 5px 16px; border-radius: 20px;
-      font-family: -apple-system, sans-serif;
-    }
+    .nav-btn:hover  { background: rgba(201,168,76,0.22); }
+    .nav-btn:active { background: rgba(201,168,76,0.35); }
+    .nav-btn.disabled { opacity: 0.15; pointer-events: none; }
 
     /* ── loading ── */
     #loading {
-      position: fixed; inset: 0; z-index: 999;
+      position: fixed; inset: 0; z-index: 9999;
       background: #0f0608;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 20px;
-      transition: opacity 0.4s;
+      transition: opacity 0.5s;
     }
-    #loading.out { opacity: 0; pointer-events: none; }
-    .spin {
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    .loader-ring {
       width: 44px; height: 44px; border-radius: 50%;
-      border: 3px solid rgba(201,168,76,0.1);
+      border: 3px solid rgba(201,168,76,0.12);
       border-top-color: #C9A84C;
-      animation: rot 0.9s linear infinite;
+      animation: spin 0.9s linear infinite;
     }
-    @keyframes rot { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
     #loading p {
       font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
       color: rgba(201,168,76,0.4); font-family: -apple-system, sans-serif;
@@ -103,17 +85,26 @@
 
     /* ══════════════════════════════════
        PAGE CONTENT  —  390 × 700 px
+       StPageFlip renders at exactly this size;
+       #book-outer is CSS-scaled to fit the screen.
     ══════════════════════════════════ */
+    .page {
+      width: 390px; height: 700px;
+      overflow: hidden; position: relative;
+      background: #FAF7F2;
+    }
 
+    /* Header strip */
     .ph {
       height: 44px; background: #7A0C21;
       display: flex; align-items: center;
       justify-content: space-between; padding: 0 18px;
       flex-shrink: 0;
     }
-    .ph b { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #C9A84C; font-weight: 700; }
-    .ph s { font-size: 10px; color: rgba(255,255,255,0.38); letter-spacing: 1px; font-style: normal; font-family: -apple-system, sans-serif; }
+    .ph-brand { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #C9A84C; font-weight: 700; }
+    .ph-num   { font-size: 10px; color: rgba(255,255,255,0.38); letter-spacing: 1px; font-style: normal; font-family: -apple-system, sans-serif; }
 
+    /* Photo */
     .pp {
       height: 390px; background: #F2EEE5;
       display: flex; align-items: center; justify-content: center;
@@ -123,6 +114,7 @@
     .pp img.cv { object-fit: cover; }
     .pp-lg { height: 452px; }
 
+    /* Info */
     .pi {
       height: 266px;
       border-top: 2px solid #C9A84C;
@@ -131,38 +123,38 @@
       flex-shrink: 0;
     }
     .pi-sm { height: 204px; }
-    .cat { font-size: 8.5px; letter-spacing: 2.5px; text-transform: uppercase; color: #C9A84C; margin-bottom: 4px; font-family: -apple-system, sans-serif; }
-    .nam { font-size: 18px; font-weight: 800; color: #1A0A0A; line-height: 1.2; margin-bottom: 8px; }
-    .dsc { font-size: 11px; line-height: 1.62; color: #545454; flex: 1; font-family: -apple-system, sans-serif; }
-    .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-    .tag { font-size: 9.5px; padding: 3px 11px; border: 1px solid rgba(122,12,33,0.32); border-radius: 20px; color: #7A0C21; letter-spacing: 0.4px; font-family: -apple-system, sans-serif; }
+    .pi-cat  { font-size: 8.5px; letter-spacing: 2.5px; text-transform: uppercase; color: #C9A84C; margin-bottom: 4px; font-family: -apple-system, sans-serif; }
+    .pi-name { font-size: 18px; font-weight: 800; color: #1A0A0A; line-height: 1.2; margin-bottom: 8px; }
+    .pi-desc { font-size: 11px; line-height: 1.62; color: #545454; flex: 1; font-family: -apple-system, sans-serif; }
+    .pi-specs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .spec { font-size: 9.5px; padding: 3px 11px; border: 1px solid rgba(122,12,33,0.32); border-radius: 20px; color: #7A0C21; letter-spacing: 0.4px; font-family: -apple-system, sans-serif; }
 
-    /* ── COVER ── */
-    .pg-cv {
+    /* COVER */
+    .page-cover {
       background: linear-gradient(152deg, #6b0a1a 0%, #4a0612 48%, #2c030a 100%);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
     }
     .cv-orn { width: 175px; height: 1px; background: linear-gradient(to right, transparent, #C9A84C 40%, transparent); margin-bottom: 26px; }
     .cv-logo { width: 255px; height: 255px; object-fit: contain; -webkit-user-drag: none; margin-bottom: 24px; }
-    .cv-ln { width: 46px; height: 1px; background: #C9A84C; margin-bottom: 14px; }
+    .cv-ln  { width: 46px; height: 1px; background: #C9A84C; margin-bottom: 14px; }
     .cv-sub { font-size: 9px; letter-spacing: 3.5px; text-transform: uppercase; color: rgba(201,168,76,0.7); text-align: center; line-height: 2; font-family: -apple-system, sans-serif; }
-    .cv-yr { position: absolute; bottom: 20px; font-size: 9px; color: rgba(255,255,255,0.17); letter-spacing: 3px; font-family: -apple-system, sans-serif; }
+    .cv-yr  { position: absolute; bottom: 20px; font-size: 9px; color: rgba(255,255,255,0.17); letter-spacing: 3px; font-family: -apple-system, sans-serif; }
 
-    /* ── ABOUT ── */
-    .pg-ab { display: flex; flex-direction: column; }
+    /* ABOUT */
+    .page-about { display: flex; flex-direction: column; }
     .ab-body { flex: 1; padding: 22px 24px 14px; display: flex; flex-direction: column; }
-    .ab-k { font-size: 88px; font-weight: 900; line-height: 0.82; color: #EDE3D4; letter-spacing: -4px; margin-bottom: 14px; user-select: none; }
-    .ab-h { font-size: 20px; font-weight: 800; color: #1A0A0A; margin-bottom: 6px; }
+    .ab-k  { font-size: 88px; font-weight: 900; line-height: 0.82; color: #EDE3D4; letter-spacing: -4px; margin-bottom: 14px; }
+    .ab-h  { font-size: 20px; font-weight: 800; color: #1A0A0A; margin-bottom: 6px; }
     .ab-ln { width: 34px; height: 2px; background: #C9A84C; margin-bottom: 13px; }
-    .ab-t { font-size: 11.5px; line-height: 1.75; color: #484848; margin-bottom: 15px; font-family: -apple-system, sans-serif; }
-    .ab-f { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .ab-d { width: 5px; height: 5px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
+    .ab-t  { font-size: 11.5px; line-height: 1.75; color: #484848; margin-bottom: 15px; font-family: -apple-system, sans-serif; }
+    .ab-f  { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .ab-d  { width: 5px; height: 5px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
     .ab-f span { font-size: 10.5px; color: #555; font-family: -apple-system, sans-serif; }
     .ab-ft { margin-top: auto; border-top: 1px solid rgba(201,168,76,0.22); padding-top: 11px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #C9A84C; font-family: -apple-system, sans-serif; }
 
-    /* ── CONTACTS ── */
-    .pg-ct {
+    /* CONTACTS */
+    .page-contacts {
       background: linear-gradient(152deg, #190a09 0%, #0d0406 100%);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center; padding: 28px 26px;
@@ -179,347 +171,273 @@
 </head>
 <body>
 
-<div id="loading"><div class="spin"></div><p>Khatima</p></div>
+<div id="loading"><div class="loader-ring"></div><p>Khatima</p></div>
 
 <div id="app">
-  <div id="stage-wrap">
-    <div id="stage">
+  <div id="book-wrapper">
+    <div id="book-outer">
+      <div id="book">
 
-      <!-- 0: ОБЛОЖКА -->
-      <div class="pg pg-cv">
-        <div class="cv-orn"></div>
-        <img class="cv-logo" src="images/logo_khatima.PNG" alt="Khatima">
-        <div class="cv-ln"></div>
-        <div class="cv-sub">Каталог торгового<br>оборудования</div>
-        <span class="cv-yr">KHATIMA · 2024</span>
-      </div>
-
-      <!-- 1: О НАС -->
-      <div class="pg pg-ab off">
-        <div class="ph"><b>Khatima</b><s>О компании</s></div>
-        <div class="ab-body">
-          <div class="ab-k">K</div>
-          <div class="ab-h">О нас</div>
-          <div class="ab-ln"></div>
-          <p class="ab-t">Khatima — производитель и поставщик торгового оборудования премиум-класса. Мы создаём стильные металлические конструкции, которые делают любой магазин элегантным и привлекательным.</p>
-          <div class="ab-f"><div class="ab-d"></div><span>Изготовление по индивидуальным размерам</span></div>
-          <div class="ab-f"><div class="ab-d"></div><span>Покрытие: золото, серебро, чёрный хром</span></div>
-          <div class="ab-f"><div class="ab-d"></div><span>Материал: нержавеющая сталь</span></div>
-          <div class="ab-f"><div class="ab-d"></div><span>Быстрая доставка, сборка и установка</span></div>
-          <div class="ab-f"><div class="ab-d"></div><span>Гарантия качества на все изделия</span></div>
-          <div class="ab-ft">Торговое оборудование &amp; Витрины</div>
+        <!-- 0: ОБЛОЖКА -->
+        <div class="page page-cover" data-density="hard">
+          <div class="cv-orn"></div>
+          <img class="cv-logo" src="images/logo_khatima.PNG" alt="Khatima">
+          <div class="cv-ln"></div>
+          <div class="cv-sub">Каталог торгового<br>оборудования</div>
+          <span class="cv-yr">KHATIMA · 2024</span>
         </div>
-      </div>
 
-      <!-- 2: Вешало Классик -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>01 / 10</s></div>
-        <div class="pp"><img src="ci/p01.jpg" alt=""></div>
-        <div class="pi">
-          <div class="cat">Вешала для одежды</div>
-          <div class="nam">Вешало «Классик»</div>
-          <p class="dsc">Напольное вешало из нержавеющей стали с золотым покрытием. Лаконичный дизайн, устойчивое основание. Универсальное решение для бутиков и шоу-румов.</p>
-          <div class="tags">
-            <span class="tag">100 / 120 / 150 см</span>
-            <span class="tag">Золото</span>
-            <span class="tag">В наличии</span>
+        <!-- 1: О НАС -->
+        <div class="page page-about">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">О компании</span></div>
+          <div class="ab-body">
+            <div class="ab-k">K</div>
+            <div class="ab-h">О нас</div>
+            <div class="ab-ln"></div>
+            <p class="ab-t">Khatima — производитель и поставщик торгового оборудования премиум-класса. Мы создаём стильные металлические конструкции, которые делают любой магазин элегантным и привлекательным.</p>
+            <div class="ab-f"><div class="ab-d"></div><span>Изготовление по индивидуальным размерам</span></div>
+            <div class="ab-f"><div class="ab-d"></div><span>Покрытие: золото, серебро, чёрный хром</span></div>
+            <div class="ab-f"><div class="ab-d"></div><span>Материал: нержавеющая сталь</span></div>
+            <div class="ab-f"><div class="ab-d"></div><span>Быстрая доставка, сборка и установка</span></div>
+            <div class="ab-f"><div class="ab-d"></div><span>Гарантия качества на все изделия</span></div>
+            <div class="ab-ft">Торговое оборудование &amp; Витрины</div>
           </div>
         </div>
-      </div>
 
-      <!-- 3: Вешало Овал -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>02 / 10</s></div>
-        <div class="pp"><img src="ci/p02.jpg" alt=""></div>
-        <div class="pi">
-          <div class="cat">Вешала для одежды</div>
-          <div class="nam">Вешало «Овал Престиж»</div>
-          <p class="dsc">Изысканное вешало с декоративным овальным верхом и верхней полкой для аксессуаров. Элегантный акцент для премиальных бутиков и шоу-румов.</p>
-          <div class="tags">
-            <span class="tag">Золото</span>
-            <span class="tag">Под заказ</span>
+        <!-- 2: Вешало Классик -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">01 / 10</span></div>
+          <div class="pp"><img src="ci/p01.jpg" alt=""></div>
+          <div class="pi">
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало «Классик»</div>
+            <p class="pi-desc">Напольное вешало из нержавеющей стали с золотым покрытием. Лаконичный дизайн, устойчивое основание. Универсальное решение для бутиков и шоу-румов.</p>
+            <div class="pi-specs">
+              <span class="spec">100 / 120 / 150 см</span><span class="spec">Золото</span><span class="spec">В наличии</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 4: Вешало Дуэт -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>03 / 10</s></div>
-        <div class="pp"><img src="ci/p03.jpg" alt=""></div>
-        <div class="pi">
-          <div class="cat">Вешала для одежды</div>
-          <div class="nam">Вешало двойное «Дуэт»</div>
-          <p class="dsc">Двухуровневая конструкция для максимальной вместимости. Нижний уровень — короткие изделия, верхний — длинные. Прочная стальная рама.</p>
-          <div class="tags">
-            <span class="tag">100–150 × 50 см</span>
-            <span class="tag">В: 130–150 см</span>
-            <span class="tag">Золото</span>
+        <!-- 3: Вешало Овал -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">02 / 10</span></div>
+          <div class="pp"><img src="ci/p02.jpg" alt=""></div>
+          <div class="pi">
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало «Овал Престиж»</div>
+            <p class="pi-desc">Изысканное вешало с декоративным овальным верхом и верхней полкой для аксессуаров. Элегантный акцент для премиальных бутиков и шоу-румов.</p>
+            <div class="pi-specs">
+              <span class="spec">Золото</span><span class="spec">Под заказ</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 5: Вешало Арка -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>04 / 10</s></div>
-        <div class="pp"><img src="ci/p04.jpg" alt=""></div>
-        <div class="pi">
-          <div class="cat">Вешала для одежды</div>
-          <div class="nam">Вешало «Арка»</div>
-          <p class="dsc">Арочная форма рамы придаёт магазину особый характер. Мраморное основание обеспечивает устойчивость и подчёркивает премиальный статус бутика.</p>
-          <div class="tags">
-            <span class="tag">Золото / мрамор</span>
-            <span class="tag">В наличии</span>
+        <!-- 4: Вешало Дуэт -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">03 / 10</span></div>
+          <div class="pp"><img src="ci/p03.jpg" alt=""></div>
+          <div class="pi">
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало двойное «Дуэт»</div>
+            <p class="pi-desc">Двухуровневая конструкция для максимальной вместимости. Нижний уровень — короткие изделия, верхний — длинные. Прочная стальная рама.</p>
+            <div class="pi-specs">
+              <span class="spec">100–150 × 50 см</span><span class="spec">В: 130–150 см</span><span class="spec">Золото</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 6: Стеллаж Арка Гранд -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>05 / 10</s></div>
-        <div class="pp" style="background:#C3CFC3"><img src="ci/p05.jpg" alt="" class="cv"></div>
-        <div class="pi">
-          <div class="cat">Стеллажи и витрины</div>
-          <div class="nam">Стеллаж «Арка Гранд»</div>
-          <p class="dsc">Монументальная витрина с центральной аркой. Шесть уровней полок, золотой профиль, белые полки. Премиальный выбор для крупных магазинов и шоу-румов.</p>
-          <div class="tags">
-            <span class="tag">Золото / белый</span>
-            <span class="tag">Размер под заказ</span>
+        <!-- 5: Вешало Арка -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">04 / 10</span></div>
+          <div class="pp"><img src="ci/p04.jpg" alt=""></div>
+          <div class="pi">
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало «Арка»</div>
+            <p class="pi-desc">Арочная форма рамы придаёт магазину особый характер. Мраморное основание обеспечивает устойчивость и подчёркивает премиальный статус бутика.</p>
+            <div class="pi-specs">
+              <span class="spec">Золото / мрамор</span><span class="spec">В наличии</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 7: Витрина Эллипс -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>06 / 10</s></div>
-        <div class="pp" style="background:#D8D4CF"><img src="ci/p06.jpg" alt=""></div>
-        <div class="pi">
-          <div class="cat">Стеллажи и витрины</div>
-          <div class="nam">Витрина «Эллипс»</div>
-          <p class="dsc">Оригинальная напольная витрина в форме эллипса. Три стеклянных уровня в изящной золотой раме. Идеальна для ювелирных украшений, косметики и аксессуаров.</p>
-          <div class="tags">
-            <span class="tag">Золото / стекло</span>
-            <span class="tag">Под заказ</span>
+        <!-- 6: Стеллаж Арка Гранд -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">05 / 10</span></div>
+          <div class="pp" style="background:#C3CFC3"><img src="ci/p05.jpg" alt="" class="cv"></div>
+          <div class="pi">
+            <div class="pi-cat">Стеллажи и витрины</div>
+            <div class="pi-name">Стеллаж «Арка Гранд»</div>
+            <p class="pi-desc">Монументальная витрина с центральной аркой. Шесть уровней полок, золотой профиль, белые полки. Премиальный выбор для крупных магазинов и шоу-румов.</p>
+            <div class="pi-specs">
+              <span class="spec">Золото / белый</span><span class="spec">Размер под заказ</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 8: Стойка Каскад -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>07 / 10</s></div>
-        <div class="pp"><img src="ci/p07.jpg" alt=""></div>
-        <div class="pi">
-          <div class="cat">Стойки для аксессуаров</div>
-          <div class="nam">Стойка «Каскад»</div>
-          <p class="dsc">Декоративная стойка с изогнутыми крючками для экспозиции сумок, ремней и аксессуаров. До 16 позиций одновременно. Настоящий магнит для покупателей.</p>
-          <div class="tags">
-            <span class="tag">16 крючков</span>
-            <span class="tag">Золото</span>
-            <span class="tag">В наличии</span>
+        <!-- 7: Витрина Эллипс -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">06 / 10</span></div>
+          <div class="pp" style="background:#D8D4CF"><img src="ci/p06.jpg" alt=""></div>
+          <div class="pi">
+            <div class="pi-cat">Стеллажи и витрины</div>
+            <div class="pi-name">Витрина «Эллипс»</div>
+            <p class="pi-desc">Оригинальная напольная витрина в форме эллипса. Три стеклянных уровня в изящной золотой раме. Идеальна для ювелирных украшений, косметики и аксессуаров.</p>
+            <div class="pi-specs">
+              <span class="spec">Золото / стекло</span><span class="spec">Под заказ</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 9: Стойка Арка мобильная -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>08 / 10</s></div>
-        <div class="pp"><img src="ci/p08.jpg" alt=""></div>
-        <div class="pi">
-          <div class="cat">Стойки для аксессуаров</div>
-          <div class="nam">Стойка «Арка» мобильная</div>
-          <p class="dsc">Компактная аркообразная стойка на поворотных роликах. Для навешивания аксессуаров и акцентной выкладки. Легко перемещается по всему торговому залу.</p>
-          <div class="tags">
-            <span class="tag">30 × 35 × 100 см</span>
-            <span class="tag">На роликах</span>
-            <span class="tag">Золото</span>
+        <!-- 8: Стойка Каскад -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">07 / 10</span></div>
+          <div class="pp"><img src="ci/p07.jpg" alt=""></div>
+          <div class="pi">
+            <div class="pi-cat">Стойки для аксессуаров</div>
+            <div class="pi-name">Стойка «Каскад»</div>
+            <p class="pi-desc">Декоративная стойка с изогнутыми крючками для экспозиции сумок, ремней и аксессуаров. До 16 позиций одновременно.</p>
+            <div class="pi-specs">
+              <span class="spec">16 крючков</span><span class="spec">Золото</span><span class="spec">В наличии</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 10: Стойка для обуви -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>09 / 10</s></div>
-        <div class="pp"><img src="ci/p09.jpg" alt=""></div>
-        <div class="pi">
-          <div class="cat">Стойки для обуви</div>
-          <div class="nam">Стойка для обуви «Профи»</div>
-          <p class="dsc">Многоуровневая металлическая стойка с кронштейнами для презентации обуви. Передвижная конструкция на роликах. Оптимальное решение для обувных магазинов.</p>
-          <div class="tags">
-            <span class="tag">Чёрный</span>
-            <span class="tag">На колёсах</span>
-            <span class="tag">До 30 пар</span>
+        <!-- 9: Стойка Арка мобильная -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">08 / 10</span></div>
+          <div class="pp"><img src="ci/p08.jpg" alt=""></div>
+          <div class="pi">
+            <div class="pi-cat">Стойки для аксессуаров</div>
+            <div class="pi-name">Стойка «Арка» мобильная</div>
+            <p class="pi-desc">Компактная аркообразная стойка на поворотных роликах. Для навешивания аксессуаров и акцентной выкладки. Легко перемещается по залу.</p>
+            <div class="pi-specs">
+              <span class="spec">30 × 35 × 100 см</span><span class="spec">На роликах</span><span class="spec">Золото</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 11: Обзор ассортимента -->
-      <div class="pg off">
-        <div class="ph"><b>Khatima</b><s>10 / 10</s></div>
-        <div class="pp pp-lg"><img src="ci/p10.jpg" alt="" class="cv"></div>
-        <div class="pi pi-sm">
-          <div class="cat">Полный ассортимент</div>
-          <div class="nam">Коллекция Khatima</div>
-          <p class="dsc">Более 50 моделей: вешала, стеллажи, витрины для обуви, сумок и украшений — в едином стиле.</p>
+        <!-- 10: Стойка для обуви -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">09 / 10</span></div>
+          <div class="pp"><img src="ci/p09.jpg" alt=""></div>
+          <div class="pi">
+            <div class="pi-cat">Стойки для обуви</div>
+            <div class="pi-name">Стойка для обуви «Профи»</div>
+            <p class="pi-desc">Многоуровневая металлическая стойка с кронштейнами для презентации обуви. Передвижная конструкция на роликах.</p>
+            <div class="pi-specs">
+              <span class="spec">Чёрный</span><span class="spec">На колёсах</span><span class="spec">До 30 пар</span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- 12: КОНТАКТЫ -->
-      <div class="pg pg-ct off">
-        <img class="ct-logo" src="images/logo_khatima.PNG" alt="Khatima">
-        <div class="ct-d"></div>
-        <div class="ct-l">Свяжитесь с нами</div>
-        <div class="ct-r">
-          <div class="ct-ic">📞</div>
-          <div class="ct-tx"><small>Телефон / WhatsApp</small>+7 (XXX) XXX-XX-XX</div>
+        <!-- 11: Обзор ассортимента -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">10 / 10</span></div>
+          <div class="pp pp-lg"><img src="ci/p10.jpg" alt="" class="cv"></div>
+          <div class="pi pi-sm">
+            <div class="pi-cat">Полный ассортимент</div>
+            <div class="pi-name">Коллекция Khatima</div>
+            <p class="pi-desc">Более 50 моделей: вешала, стеллажи, витрины для обуви, сумок и украшений — в едином стиле.</p>
+          </div>
         </div>
-        <div class="ct-r">
-          <div class="ct-ic">📍</div>
-          <div class="ct-tx"><small>Адрес шоу-рума</small>г. Алматы, ул. Примерная, 1</div>
-        </div>
-        <div class="ct-r">
-          <div class="ct-ic">🕐</div>
-          <div class="ct-tx"><small>Режим работы</small>Пн–Сб: 9:00 – 19:00</div>
-        </div>
-        <div class="ct-tg">Производство &amp; поставка<br>торгового оборудования</div>
-      </div>
 
-    </div><!-- #stage -->
-  </div><!-- #stage-wrap -->
+        <!-- 12: КОНТАКТЫ -->
+        <div class="page page-contacts" data-density="hard">
+          <img class="ct-logo" src="images/logo_khatima.PNG" alt="Khatima">
+          <div class="ct-d"></div>
+          <div class="ct-l">Свяжитесь с нами</div>
+          <div class="ct-r"><div class="ct-ic">📞</div><div class="ct-tx"><small>Телефон / WhatsApp</small>+7 (XXX) XXX-XX-XX</div></div>
+          <div class="ct-r"><div class="ct-ic">📍</div><div class="ct-tx"><small>Адрес шоу-рума</small>г. Алматы, ул. Примерная, 1</div></div>
+          <div class="ct-r"><div class="ct-ic">🕐</div><div class="ct-tx"><small>Режим работы</small>Пн–Сб: 9:00 – 19:00</div></div>
+          <div class="ct-tg">Производство &amp; поставка<br>торгового оборудования</div>
+        </div>
 
-  <div id="bar">
-    <button class="btn" id="bPrev" disabled>&#8249;</button>
-    <span id="ctr">1 / 13</span>
-    <button class="btn" id="bNext">&#8250;</button>
+      </div><!-- #book -->
+    </div><!-- #book-outer -->
+  </div><!-- #book-wrapper -->
+
+  <div id="bottom-bar">
+    <button class="nav-btn disabled" id="btn-prev">&#8249;</button>
+    <span id="page-counter">1 / 13</span>
+    <button class="nav-btn" id="btn-next">&#8250;</button>
   </div>
 </div>
 
+<script src="js/page-flip.min.js"></script>
 <script>
 (function () {
   'use strict';
 
-  var pages = Array.from(document.querySelectorAll('.pg'));
-  var TOTAL = pages.length;
-  var cur   = 0;
-  var busy  = false;
-  var stage = document.getElementById('stage');
+  var NATURAL_W = 390;
+  var NATURAL_H = 700;
+  var current   = 0;
+  var TOTAL     = 13;
 
-  /* ── fit stage to screen ── */
-  function fit() {
-    var wrap = document.getElementById('stage-wrap');
-    var s = Math.min(wrap.clientWidth / 390, wrap.clientHeight / 700);
-    stage.style.transform = 'scale(' + s + ')';
-    stage.classList.add('ready');
+  /* ── Scale #book-outer to fit the viewport ── */
+  function fitBook() {
+    var wrapper = document.getElementById('book-wrapper');
+    var s = Math.min(
+      wrapper.clientWidth  / NATURAL_W,
+      wrapper.clientHeight / NATURAL_H,
+      1          /* never upscale beyond natural size */
+    );
+    document.getElementById('book-outer').style.transform = 'scale(' + s + ')';
   }
-  window.addEventListener('resize', fit);
-  fit();
+  window.addEventListener('resize', fitBook);
+  fitBook();
 
-  /* ── magazine-style page flip ── */
-  function flip(to, dir) {
-    if (busy || to === cur || to < 0 || to >= TOTAL) return;
-    busy = true;
+  /* ── Init StPageFlip at natural 390 × 700 ── */
+  var pageFlip = new St.PageFlip(document.getElementById('book'), {
+    width:    NATURAL_W,
+    height:   NATURAL_H,
+    size:     'fixed',
+    minWidth: NATURAL_W, maxWidth:  NATURAL_W,
+    minHeight:NATURAL_H, maxHeight: NATURAL_H,
+    usePortrait:         true,
+    autoSize:            false,
+    showCover:           true,
+    flippingTime:        700,
+    useMouseEvents:      true,
+    swipeDistance:       30,
+    mobileScrollSupport: false,
+    maxShadowOpacity:    0.65,
+    drawShadow:          true,
+  });
 
-    var from  = pages[cur];
-    var toEl  = pages[to];
+  pageFlip.loadFromHTML(document.querySelectorAll('.page'));
 
-    /*
-      Forward (dir > 0):
-        • from: pivot LEFT, folds away to the LEFT  (0 → -90°), ease-in
-        • to:   pivot RIGHT, unfolds from the RIGHT (90 → 0°),  ease-out
-
-      Backward (dir < 0):
-        • from: pivot RIGHT, folds away to the RIGHT (0 → 90°),  ease-in
-        • to:   pivot LEFT,  unfolds from the LEFT   (-90 → 0°), ease-out
-    */
-    var fromPivot  = dir > 0 ? 'left center'  : 'right center';
-    var toPivot    = dir > 0 ? 'right center' : 'left center';
-    var exitAngle  = dir > 0 ? -90 : 90;
-    var enterAngle = dir > 0 ?  90 : -90;
-
-    /* position incoming page off-screen (no transition yet) */
-    toEl.classList.remove('off');
-    toEl.style.cssText =
-      'z-index:1;' +
-      'transform-origin:' + toPivot + ';' +
-      'transform:rotateY(' + enterAngle + 'deg);' +
-      'transition:none';
-    toEl.offsetHeight; /* force reflow so transition isn't skipped */
-
-    /* fold OUT the current page – ease-in so it starts slow, accelerates */
-    from.style.cssText =
-      'z-index:2;' +
-      'transform-origin:' + fromPivot + ';' +
-      'transform:rotateY(0deg);' +
-      'transition:transform .32s cubic-bezier(.45,0,1,1)';
-    from.offsetHeight;
-    from.style.transform = 'rotateY(' + exitAngle + 'deg)';
-
-    /* fold IN the next page – starts just before fold-out finishes */
-    setTimeout(function () {
-      toEl.style.cssText =
-        'z-index:1;' +
-        'transform-origin:' + toPivot + ';' +
-        'transform:rotateY(' + enterAngle + 'deg);' +
-        'transition:transform .36s cubic-bezier(0,0,.55,1)';
-      toEl.offsetHeight;
-      toEl.style.transform = 'rotateY(0deg)';
-    }, 270);
-
-    /* cleanup after both phases complete */
-    setTimeout(function () {
-      from.classList.add('off');
-      from.style.cssText = '';
-      toEl.style.cssText = '';
-      cur  = to;
-      busy = false;
-      sync();
-    }, 640);
+  /* ── Sync counter & buttons ── */
+  function updateUI() {
+    document.getElementById('page-counter').textContent = (current + 1) + ' / ' + TOTAL;
+    document.getElementById('btn-prev').classList.toggle('disabled', current === 0);
+    document.getElementById('btn-next').classList.toggle('disabled', current === TOTAL - 1);
   }
 
-  function next() { flip(cur + 1,  1); }
-  function prev() { flip(cur - 1, -1); }
+  pageFlip.on('flip', function (e) {
+    current = e.data;
+    updateUI();
+  });
 
-  /* ── sync counter & buttons ── */
-  function sync() {
-    document.getElementById('ctr').textContent = (cur + 1) + ' / ' + TOTAL;
-    document.getElementById('bPrev').disabled = cur === 0;
-    document.getElementById('bNext').disabled = cur === TOTAL - 1;
-  }
+  document.getElementById('btn-prev').addEventListener('click', function () { pageFlip.flipPrev(); });
+  document.getElementById('btn-next').addEventListener('click', function () { pageFlip.flipNext(); });
 
-  document.getElementById('bPrev').addEventListener('click', prev);
-  document.getElementById('bNext').addEventListener('click', next);
-
-  /* ── keyboard ── */
+  /* ── Keyboard ── */
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prev();
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') pageFlip.flipNext();
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   pageFlip.flipPrev();
   });
 
-  /* ── swipe ── */
-  var sx = 0, sy = 0, st = 0;
-  document.addEventListener('touchstart', function (e) {
-    sx = e.touches[0].clientX;
-    sy = e.touches[0].clientY;
-    st = Date.now();
-  }, { passive: true });
-  document.addEventListener('touchend', function (e) {
-    var dx = e.changedTouches[0].clientX - sx;
-    var dy = e.changedTouches[0].clientY - sy;
-    if (Date.now() - st < 400 && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2)
-      dx < 0 ? next() : prev();
-  }, { passive: true });
-
-  /* ── tap left/right edge of stage ── */
-  stage.addEventListener('click', function (e) {
-    var x = e.clientX - stage.getBoundingClientRect().left;
-    if      (x < stage.offsetWidth * 0.25) prev();
-    else if (x > stage.offsetWidth * 0.75) next();
-  });
-
-  /* ── hide loading screen ── */
-  var ld = document.getElementById('loading');
-  setTimeout(function () {
-    ld.classList.add('out');
-    setTimeout(function () { ld.style.display = 'none'; }, 420);
-  }, 500);
+  /* ── Hide loading when book is ready ── */
+  var hidden = false;
+  function hideLoading() {
+    if (hidden) return;
+    hidden = true;
+    var el = document.getElementById('loading');
+    el.classList.add('hidden');
+    setTimeout(function () { el.style.display = 'none'; }, 520);
+  }
+  pageFlip.on('changeState', function (e) { if (e.data === 'read') hideLoading(); });
+  setTimeout(hideLoading, 3000);
 
 })();
 </script>
