@@ -4,169 +4,142 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#FDFBF6">
   <title>Khatima — Каталог</title>
   <style>
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      src: url('fonts/cormorant-garamond.woff2') format('woff2');
+      font-weight: 300 700; font-style: normal; font-display: swap;
+    }
+    :root {
+      --ink: #2A2420;
+      --muted: #6F675D;
+      --gold: #B08D3C;
+      --gold-d: #8E6F25;
+      --gold-soft: #E8DDC0;
+      --ivory: #FDFBF6;
+      --sand: #F5F0E6;
+      --wine: #7A0C21;
+      --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       width: 100%; height: 100%;
       position: fixed; overflow: hidden;
-      background: #0f0608;
+      background: radial-gradient(ellipse at 50% 30%, #FFFEFB 0%, #F3EDE1 70%, #EBE3D3 100%);
       -webkit-user-select: none; user-select: none;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Georgia, serif;
+      font-family: var(--sans); color: var(--ink);
     }
 
-    #app {
-      width: 100%; height: 100%;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-    }
-
-    #book-wrapper {
-      flex: 1; width: 100%;
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-    }
+    #app { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #book-wrapper { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
     /* outer div gets transform:scale() — StPageFlip inside stays at 390×700 */
-    #book-outer {
-      transform-origin: center center;
-      filter: drop-shadow(0 16px 56px rgba(0,0,0,0.8));
-    }
+    #book-outer { transform-origin: center center; filter: drop-shadow(0 14px 38px rgba(90,66,24,0.22)) drop-shadow(0 2px 6px rgba(90,66,24,0.12)); }
 
     /* ── bottom bar ── */
-    #bottom-bar {
-      height: 52px; width: 100%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; gap: 14px;
-    }
+    #bottom-bar { height: 56px; width: 100%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 14px; }
     #page-counter {
-      color: rgba(201,168,76,0.85);
-      background: rgba(201,168,76,0.08);
-      border: 1px solid rgba(201,168,76,0.20);
-      padding: 5px 18px; border-radius: 20px;
-      font-size: 12px; letter-spacing: 1.5px;
-      font-family: -apple-system, sans-serif;
+      color: var(--gold-d); background: rgba(255,255,255,0.75);
+      border: 1px solid var(--gold-soft);
+      padding: 6px 18px; border-radius: 20px;
+      font-size: 12px; letter-spacing: 1.5px; font-family: var(--sans);
     }
     .nav-btn {
-      background: rgba(201,168,76,0.10);
-      border: 1px solid rgba(201,168,76,0.25);
-      color: rgba(201,168,76,0.85);
+      background: #fff; border: 1px solid var(--gold-soft); color: var(--wine);
       width: 38px; height: 38px; border-radius: 50%;
-      font-size: 24px; cursor: pointer;
+      font-size: 24px; line-height: 1; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.18s;
+      box-shadow: 0 2px 8px rgba(90,66,24,0.10);
+      transition: background 0.18s, transform 0.12s;
       -webkit-tap-highlight-color: transparent;
     }
-    .nav-btn:hover  { background: rgba(201,168,76,0.22); }
-    .nav-btn:active { background: rgba(201,168,76,0.35); }
-    .nav-btn.disabled { opacity: 0.15; pointer-events: none; }
+    .nav-btn:hover  { background: #FBF4E4; }
+    .nav-btn:active { background: #F3E7C8; transform: scale(0.95); }
+    .nav-btn.disabled { opacity: 0.25; pointer-events: none; }
 
     /* ── loading ── */
     #loading {
       position: fixed; inset: 0; z-index: 9999;
-      background: #0f0608;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 20px;
+      background: #FDFBF6;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
       transition: opacity 0.5s;
     }
     #loading.hidden { opacity: 0; pointer-events: none; }
-    .loader-ring {
-      width: 44px; height: 44px; border-radius: 50%;
-      border: 3px solid rgba(201,168,76,0.12);
-      border-top-color: #C9A84C;
-      animation: spin 0.9s linear infinite;
-    }
+    .loader-ring { width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--gold-soft); border-top-color: var(--gold); animation: spin 0.9s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loading p {
-      font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
-      color: rgba(201,168,76,0.4); font-family: -apple-system, sans-serif;
-    }
+    #loading p { font-size: 11px; letter-spacing: 6px; text-transform: uppercase; color: var(--gold-d); font-family: var(--serif); font-weight: 600; }
 
     /* ══════════════════════════════════
        PAGE CONTENT  —  390 × 700 px
-       StPageFlip renders at exactly this size;
-       #book-outer is CSS-scaled to fit the screen.
     ══════════════════════════════════ */
-    .page {
-      width: 390px; height: 700px;
-      overflow: hidden; position: relative;
-      background: #FAF7F2;
-    }
+    .page { width: 390px; height: 700px; overflow: hidden; position: relative; background: var(--ivory); }
 
     /* Header strip */
     .ph {
-      height: 44px; background: #7A0C21;
-      display: flex; align-items: center;
-      justify-content: space-between; padding: 0 18px;
+      height: 44px; background: var(--ivory);
+      border-bottom: 1px solid var(--gold-soft);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
       flex-shrink: 0;
     }
-    .ph-brand { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #C9A84C; font-weight: 700; }
-    .ph-num   { font-size: 10px; color: rgba(255,255,255,0.38); letter-spacing: 1px; font-style: normal; font-family: -apple-system, sans-serif; }
+    .ph-brand { font-family: var(--serif); font-size: 15px; letter-spacing: 5px; text-transform: uppercase; color: var(--wine); font-weight: 700; }
+    .ph-num   { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; font-family: var(--sans); }
 
     /* Photo */
-    .pp {
-      height: 390px; background: #F2EEE5;
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden; flex-shrink: 0;
-    }
+    .pp { height: 390px; background: var(--sand); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
     .pp img { width: 100%; height: 100%; object-fit: contain; object-position: center; -webkit-user-drag: none; }
-    .pp img.cv { object-fit: cover; }
-    .pp-lg { height: 452px; }
+    .pp-t { height: 430px; }
 
     /* Info */
-    .pi {
-      height: 266px;
-      border-top: 2px solid #C9A84C;
-      padding: 14px 20px 12px;
-      display: flex; flex-direction: column;
-      flex-shrink: 0;
-    }
-    .pi-sm { height: 204px; }
-    .pi-cat  { font-size: 8.5px; letter-spacing: 2.5px; text-transform: uppercase; color: #C9A84C; margin-bottom: 4px; font-family: -apple-system, sans-serif; }
-    .pi-name { font-size: 18px; font-weight: 800; color: #1A0A0A; line-height: 1.2; margin-bottom: 8px; }
-    .pi-desc { font-size: 11px; line-height: 1.62; color: #545454; flex: 1; font-family: -apple-system, sans-serif; }
-    .pi-specs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-    .spec { font-size: 9.5px; padding: 3px 11px; border: 1px solid rgba(122,12,33,0.32); border-radius: 20px; color: #7A0C21; letter-spacing: 0.4px; font-family: -apple-system, sans-serif; }
+    .pi { position: relative; height: 266px; padding: 16px 22px 14px; display: flex; flex-direction: column; flex-shrink: 0; background: var(--ivory); }
+    .pi::before { content: ''; position: absolute; top: 0; left: 22px; width: 46px; height: 2px; background: var(--gold); }
+    .pi-t { height: 226px; }
+    .pi-cat  { font-size: 9px; letter-spacing: 2.6px; text-transform: uppercase; color: var(--gold-d); margin: 4px 0 5px; font-family: var(--sans); font-weight: 600; }
+    .pi-name { font-family: var(--serif); font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1.08; margin-bottom: 8px; }
+    .pi-desc { font-size: 12.5px; line-height: 1.65; color: #5E574E; flex: 1; font-family: var(--sans); }
+    .pi-specs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-bottom: 4px; }
+    .spec { font-size: 10px; padding: 4px 12px; border: 1px solid var(--gold-soft); background: #FBF6EA; border-radius: 20px; color: #6A5A2E; letter-spacing: 0.3px; font-family: var(--sans); }
 
     /* COVER */
-    .page-cover {
-      background: linear-gradient(152deg, #6b0a1a 0%, #4a0612 48%, #2c030a 100%);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-    }
-    .cv-orn { width: 175px; height: 1px; background: linear-gradient(to right, transparent, #C9A84C 40%, transparent); margin-bottom: 26px; }
-    .cv-logo { width: 255px; height: 255px; object-fit: contain; -webkit-user-drag: none; margin-bottom: 24px; }
-    .cv-ln  { width: 46px; height: 1px; background: #C9A84C; margin-bottom: 14px; }
-    .cv-sub { font-size: 9px; letter-spacing: 3.5px; text-transform: uppercase; color: rgba(201,168,76,0.7); text-align: center; line-height: 2; font-family: -apple-system, sans-serif; }
-    .cv-yr  { position: absolute; bottom: 20px; font-size: 9px; color: rgba(255,255,255,0.17); letter-spacing: 3px; font-family: -apple-system, sans-serif; }
+    .page-cover { background: radial-gradient(ellipse at 50% 38%, #FFFFFF 0%, #FBF7EE 55%, #F3EBDA 100%); }
+    /* flex-контейнер вынесен внутрь страницы: StPageFlip перезаписывает display у самой .page */
+    .cv-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .cv-frame { position: absolute; inset: 14px; border: 1px solid var(--gold-soft); pointer-events: none; }
+    .cv-frame::after { content: ''; position: absolute; inset: 5px; border: 1px solid rgba(176,141,60,0.22); }
+    .cv-orn { width: 150px; height: 1px; background: linear-gradient(to right, transparent, var(--gold) 50%, transparent); margin-bottom: 30px; }
+    .cv-logo { width: 300px; height: auto; -webkit-user-drag: none; margin-bottom: 30px; }
+    .cv-ln  { width: 46px; height: 1px; background: var(--gold); margin-bottom: 18px; }
+    .cv-title { font-family: var(--serif); font-size: 27px; font-weight: 600; color: var(--ink); text-align: center; line-height: 1.15; letter-spacing: 0.5px; margin-bottom: 14px; }
+    .cv-sub { font-size: 9px; letter-spacing: 2.6px; text-transform: uppercase; color: var(--gold-d); text-align: center; line-height: 2; font-family: var(--sans); }
+    .cv-yr  { position: absolute; left: 0; right: 0; text-align: center; bottom: 32px; font-size: 9px; color: #A79F92; letter-spacing: 3px; font-family: var(--sans); }
 
     /* ABOUT */
-    .page-about { display: flex; flex-direction: column; }
-    .ab-body { flex: 1; padding: 22px 24px 14px; display: flex; flex-direction: column; }
-    .ab-k  { font-size: 88px; font-weight: 900; line-height: 0.82; color: #EDE3D4; letter-spacing: -4px; margin-bottom: 14px; }
-    .ab-h  { font-size: 20px; font-weight: 800; color: #1A0A0A; margin-bottom: 6px; }
-    .ab-ln { width: 34px; height: 2px; background: #C9A84C; margin-bottom: 13px; }
-    .ab-t  { font-size: 11.5px; line-height: 1.75; color: #484848; margin-bottom: 15px; font-family: -apple-system, sans-serif; }
-    .ab-f  { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .ab-d  { width: 5px; height: 5px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
-    .ab-f span { font-size: 10.5px; color: #555; font-family: -apple-system, sans-serif; }
-    .ab-ft { margin-top: auto; border-top: 1px solid rgba(201,168,76,0.22); padding-top: 11px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #C9A84C; font-family: -apple-system, sans-serif; }
+    .ab-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; }
+    .ab-body { flex: 1; padding: 20px 26px 16px; display: flex; flex-direction: column; position: relative; }
+    .ab-k  { font-family: var(--serif); font-size: 190px; font-weight: 700; line-height: 0.72; color: #F1E8D2; margin: 6px 0 10px -6px; }
+    .ab-h  { font-family: var(--serif); font-size: 34px; font-weight: 700; color: var(--ink); margin-bottom: 6px; line-height: 1; }
+    .ab-ln { width: 40px; height: 2px; background: var(--gold); margin-bottom: 14px; }
+    .ab-t  { font-size: 12px; line-height: 1.75; color: #504940; margin-bottom: 16px; font-family: var(--sans); }
+    .ab-f  { display: flex; align-items: center; gap: 11px; margin-bottom: 9px; }
+    .ab-d  { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+    .ab-f span { font-size: 11px; color: #4D463D; font-family: var(--sans); }
+    .ab-ft { margin-top: auto; border-top: 1px solid var(--gold-soft); padding-top: 12px; font-size: 9px; letter-spacing: 2.2px; text-transform: uppercase; color: var(--gold-d); font-family: var(--sans); }
 
     /* CONTACTS */
-    .page-contacts {
-      background: linear-gradient(152deg, #190a09 0%, #0d0406 100%);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; padding: 28px 26px;
-    }
-    .ct-logo { width: 140px; height: 140px; object-fit: contain; -webkit-user-drag: none; margin-bottom: 12px; }
-    .ct-d { width: 40px; height: 1px; background: #C9A84C; margin-bottom: 12px; }
-    .ct-l { font-size: 9px; letter-spacing: 3.5px; text-transform: uppercase; color: #C9A84C; margin-bottom: 20px; font-family: -apple-system, sans-serif; }
-    .ct-r { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; width: 100%; }
-    .ct-ic { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(201,168,76,0.28); background: rgba(201,168,76,0.06); display: flex; align-items: center; justify-content: center; font-size: 15px; margin-top: 2px; }
-    .ct-tx { font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; font-family: -apple-system, sans-serif; }
-    .ct-tx small { display: block; font-size: 9.5px; color: rgba(255,255,255,0.3); margin-bottom: 1px; }
-    .ct-tg { margin-top: 20px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.17); text-align: center; line-height: 1.9; font-family: -apple-system, sans-serif; }
+    .page-contacts { background: radial-gradient(ellipse at 50% 30%, #FFFFFF 0%, #FBF7EE 60%, #F3EBDA 100%); }
+    .page-contacts .cv-in { padding: 28px 34px; }
+    .ct-logo { width: 230px; height: auto; -webkit-user-drag: none; margin-bottom: 16px; }
+    .ct-d { width: 40px; height: 1px; background: var(--gold); margin-bottom: 14px; }
+    .ct-l { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--ink); margin-bottom: 22px; }
+    .ct-r { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 15px; width: 100%; }
+    .ct-ic { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--gold-soft); background: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; box-shadow: 0 1px 4px rgba(90,66,24,0.08); }
+    .ct-tx { font-size: 13px; color: var(--ink); line-height: 1.45; font-family: var(--sans); }
+    .ct-tx small { display: block; font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: #968D7F; margin-bottom: 2px; }
+    .ct-tg { margin-top: 22px; font-size: 9px; letter-spacing: 2.2px; text-transform: uppercase; color: var(--gold-d); text-align: center; line-height: 1.9; font-family: var(--sans); }
   </style>
 </head>
 <body>
@@ -180,176 +153,238 @@
 
         <!-- 0: ОБЛОЖКА -->
         <div class="page page-cover">
-          <div class="cv-orn"></div>
-          <img class="cv-logo" src="images/logo_khatima.PNG" alt="Khatima">
-          <div class="cv-ln"></div>
-          <div class="cv-sub">Каталог торгового<br>оборудования</div>
-          <span class="cv-yr">KHATIMA · 2024</span>
+          <div class="cv-frame"></div>
+          <div class="cv-in">
+            <div class="cv-orn"></div>
+            <img class="cv-logo" src="images/logo_khatima_light.png" alt="Khatima">
+            <div class="cv-ln"></div>
+            <div class="cv-title">Каталог торгового<br>оборудования</div>
+          </div>
+          <span class="cv-yr">KHATIMA · 2026</span>
         </div>
 
         <!-- 1: О НАС -->
         <div class="page page-about">
+          <div class="ab-wrap">
           <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">О компании</span></div>
           <div class="ab-body">
             <div class="ab-k">K</div>
             <div class="ab-h">О нас</div>
             <div class="ab-ln"></div>
-            <p class="ab-t">Khatima — производитель и поставщик торгового оборудования премиум-класса. Мы создаём стильные металлические конструкции, которые делают любой магазин элегантным и привлекательным.</p>
-            <div class="ab-f"><div class="ab-d"></div><span>Изготовление по индивидуальным размерам</span></div>
-            <div class="ab-f"><div class="ab-d"></div><span>Покрытие: золото, серебро, чёрный хром</span></div>
-            <div class="ab-f"><div class="ab-d"></div><span>Материал: нержавеющая сталь</span></div>
-            <div class="ab-f"><div class="ab-d"></div><span>Быстрая доставка, сборка и установка</span></div>
-            <div class="ab-f"><div class="ab-d"></div><span>Гарантия качества на все изделия</span></div>
-            <div class="ab-ft">Торговое оборудование &amp; Витрины</div>
+            <p class="ab-t">Khatima — оптовые поставки торгового оборудования для магазинов. В каталоге вешала, настенные системы, торговые корзины и плечики.</p>
+            <div class="ab-f"><div class="ab-d"></div><span>Оптовые поставки</span></div>
+            <div class="ab-f"><div class="ab-d"></div><span>Покрытия: золото, серебро, чёрный хром</span></div>
+            <div class="ab-f"><div class="ab-d"></div><span>Вешала, настенные системы, корзины, плечики</span></div>
+            <div class="ab-f"><div class="ab-d"></div><span>Наличие и условия — по телефону</span></div>
+            <div class="ab-ft">Торговое оборудование оптом</div>
+          </div>
           </div>
         </div>
 
-        <!-- 2: Вешало Классик -->
+        <!-- 2: Вешало «Волна Голд» -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">01 / 10</span></div>
-          <div class="pp"><img src="ci/p01.jpg" alt=""></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">01 / 16</span></div>
+          <div class="pp"><img src="ci/p01.jpg" alt="Вешало «Волна Голд»"></div>
           <div class="pi">
             <div class="pi-cat">Вешала для одежды</div>
-            <div class="pi-name">Вешало «Классик»</div>
-            <p class="pi-desc">Напольное вешало из нержавеющей стали с золотым покрытием. Лаконичный дизайн, устойчивое основание. Универсальное решение для бутиков и шоу-румов.</p>
-            <div class="pi-specs">
-              <span class="spec">100 / 120 / 150 см</span><span class="spec">Золото</span><span class="spec">В наличии</span>
-            </div>
+            <div class="pi-name">Вешало «Волна Голд»</div>
+            <p class="pi-desc">Напольное вешало с волнообразной верхней штангой и декоративными шарами для плечиков. Высота регулируется, колёса с фиксаторами. Эффектный акцент для бутика.</p>
+            <div class="pi-specs"><span class="spec">Золото</span><span class="spec">Регулируемая высота</span><span class="spec">На колёсах</span></div>
           </div>
         </div>
 
-        <!-- 3: Вешало Овал -->
+        <!-- 3: Вешало «Волна Сильвер» -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">02 / 10</span></div>
-          <div class="pp"><img src="ci/p02.jpg" alt=""></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">02 / 16</span></div>
+          <div class="pp"><img src="ci/p02.jpg" alt="Вешало «Волна Сильвер»"></div>
           <div class="pi">
             <div class="pi-cat">Вешала для одежды</div>
-            <div class="pi-name">Вешало «Овал Престиж»</div>
-            <p class="pi-desc">Изысканное вешало с декоративным овальным верхом и верхней полкой для аксессуаров. Элегантный акцент для премиальных бутиков и шоу-румов.</p>
-            <div class="pi-specs">
-              <span class="spec">Золото</span><span class="spec">Под заказ</span>
-            </div>
+            <div class="pi-name">Вешало «Волна Сильвер»</div>
+            <p class="pi-desc">Та же волнообразная модель в исполнении из полированной стали. Строгий серебристый цвет подходит к любому интерьеру. Регулируемая высота, колёса с тормозом.</p>
+            <div class="pi-specs"><span class="spec">Сталь / серебро</span><span class="spec">Регулируемая высота</span><span class="spec">На колёсах</span></div>
           </div>
         </div>
 
-        <!-- 4: Вешало Дуэт -->
+        <!-- 4: Вешало «Стандарт Голд» -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">03 / 10</span></div>
-          <div class="pp"><img src="ci/p03.jpg" alt=""></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">03 / 16</span></div>
+          <div class="pp"><img src="ci/p03.jpg" alt="Вешало «Стандарт Голд»"></div>
           <div class="pi">
             <div class="pi-cat">Вешала для одежды</div>
-            <div class="pi-name">Вешало двойное «Дуэт»</div>
-            <p class="pi-desc">Двухуровневая конструкция для максимальной вместимости. Нижний уровень — короткие изделия, верхний — длинные. Прочная стальная рама.</p>
-            <div class="pi-specs">
-              <span class="spec">100–150 × 50 см</span><span class="spec">В: 130–150 см</span><span class="spec">Золото</span>
-            </div>
+            <div class="pi-name">Вешало «Стандарт Голд»</div>
+            <p class="pi-desc">Классическое передвижное вешало с регулируемой высотой и фигурной ножкой-основанием. Матовое золотое покрытие. Рабочая лошадка для торгового зала и склада.</p>
+            <div class="pi-specs"><span class="spec">Матовое золото</span><span class="spec">Регулируемая высота</span><span class="spec">На колёсах</span></div>
           </div>
         </div>
 
-        <!-- 5: Вешало Арка -->
+        <!-- 5: Вешало «Стандарт Хром» -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">04 / 10</span></div>
-          <div class="pp"><img src="ci/p04.jpg" alt=""></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">04 / 16</span></div>
+          <div class="pp"><img src="ci/p04.jpg" alt="Вешало «Стандарт Хром»"></div>
           <div class="pi">
             <div class="pi-cat">Вешала для одежды</div>
-            <div class="pi-name">Вешало «Арка»</div>
-            <p class="pi-desc">Арочная форма рамы придаёт магазину особый характер. Мраморное основание обеспечивает устойчивость и подчёркивает премиальный статус бутика.</p>
-            <div class="pi-specs">
-              <span class="spec">Золото / мрамор</span><span class="spec">В наличии</span>
-            </div>
+            <div class="pi-name">Вешало «Стандарт Хром»</div>
+            <p class="pi-desc">Универсальное вешало с хромированным покрытием и регулируемой высотой штанги. Устойчивая рама на колёсах. Самый доступный вариант в линейке.</p>
+            <div class="pi-specs"><span class="spec">Хром</span><span class="spec">Регулируемая высота</span><span class="spec">На колёсах</span></div>
           </div>
         </div>
 
-        <!-- 6: Стеллаж Арка Гранд -->
+        <!-- 6: Вешало «Минимал» -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">05 / 10</span></div>
-          <div class="pp" style="background:#C3CFC3"><img src="ci/p05.jpg" alt="" class="cv"></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">05 / 16</span></div>
+          <div class="pp"><img src="ci/p05.jpg" alt="Вешало «Минимал»"></div>
           <div class="pi">
-            <div class="pi-cat">Стеллажи и витрины</div>
-            <div class="pi-name">Стеллаж «Арка Гранд»</div>
-            <p class="pi-desc">Монументальная витрина с центральной аркой. Шесть уровней полок, золотой профиль, белые полки. Премиальный выбор для крупных магазинов и шоу-румов.</p>
-            <div class="pi-specs">
-              <span class="spec">Золото / белый</span><span class="spec">Размер под заказ</span>
-            </div>
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало «Минимал»</div>
+            <p class="pi-desc">Лаконичное вешало в чёрном матовом цвете. Телескопические стойки, прочная Т-образная рама на колёсах. Подходит для лофт-интерьеров и мультибрендовых магазинов.</p>
+            <div class="pi-specs"><span class="spec">Чёрный матовый</span><span class="spec">Телескопическое</span><span class="spec">На колёсах</span></div>
           </div>
         </div>
 
-        <!-- 7: Витрина Эллипс -->
+        <!-- 7: Вешало «Геометрия» -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">06 / 10</span></div>
-          <div class="pp" style="background:#D8D4CF"><img src="ci/p06.jpg" alt=""></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">06 / 16</span></div>
+          <div class="pp pp-t"><img src="ci/p06.jpg" alt="Вешало «Геометрия»"></div>
+          <div class="pi pi-t">
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало «Геометрия»</div>
+            <p class="pi-desc">Двухстороннее вешало с наклонными штангами и геометричным основанием. Две рабочие стороны экспозиции. Золотое покрытие, колёса. Премиальный вариант для шоу-румов.</p>
+            <div class="pi-specs"><span class="spec">Золото</span><span class="spec">Две штанги</span><span class="spec">На колёсах</span></div>
+          </div>
+        </div>
+
+        <!-- 8: Вешало «Пагода» -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">07 / 16</span></div>
+          <div class="pp pp-t"><img src="ci/p07.jpg" alt="Вешало «Пагода»"></div>
+          <div class="pi pi-t">
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало «Пагода»</div>
+            <p class="pi-desc">Стационарное вешало с изогнутой штангой, прорезями для плечиков и овальным основанием. Лёгкая и очень выразительная конструкция в золотом цвете.</p>
+            <div class="pi-specs"><span class="spec">Золото</span><span class="spec">Овальное основание</span><span class="spec">Без колёс</span></div>
+          </div>
+        </div>
+
+        <!-- 9: Вешало «Карусель» -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">08 / 16</span></div>
+          <div class="pp pp-t"><img src="ci/p08.jpg" alt="Вешало «Карусель»"></div>
+          <div class="pi pi-t">
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало «Карусель»</div>
+            <p class="pi-desc">Вращающаяся двухъярусная стойка с перфорированными кольцами для плечиков. Пятилучевое основание на колёсах. Вмещает много одежды на минимальной площади.</p>
+            <div class="pi-specs"><span class="spec">Золото</span><span class="spec">2 яруса</span><span class="spec">Вращающееся</span></div>
+          </div>
+        </div>
+
+        <!-- 10: Вешало «Ротонда» -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">09 / 16</span></div>
+          <div class="pp pp-t"><img src="ci/p09.jpg" alt="Вешало «Ротонда»"></div>
+          <div class="pi pi-t">
+            <div class="pi-cat">Вешала для одежды</div>
+            <div class="pi-name">Вешало «Ротонда»</div>
+            <p class="pi-desc">Круговая стойка с перфорированным кольцом для плечиков и телескопической стойкой. Высота регулируется. Матовое золото, пятилучевое основание на колёсах.</p>
+            <div class="pi-specs"><span class="spec">Матовое золото</span><span class="spec">Регулируемая высота</span><span class="spec">На колёсах</span></div>
+          </div>
+        </div>
+
+        <!-- 11: Настенная система «Галерея» -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">10 / 16</span></div>
+          <div class="pp pp-t"><img src="ci/p10.jpg" alt="Настенная система «Галерея»"></div>
+          <div class="pi pi-t">
+            <div class="pi-cat">Настенные системы</div>
+            <div class="pi-name">Настенная система «Галерея»</div>
+            <p class="pi-desc">Перфорированные стойки и наклонные кронштейны с шарами для плечиков. Кронштейны переставляются по высоте, система собирается под любую стену.</p>
+            <div class="pi-specs"><span class="spec">Хром</span><span class="spec">Модульная</span><span class="spec">Крепление к стене</span></div>
+          </div>
+        </div>
+
+        <!-- 12: Настенная система «Лофт» -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">11 / 16</span></div>
+          <div class="pp"><img src="ci/p11.jpg" alt="Настенная система «Лофт»"></div>
           <div class="pi">
-            <div class="pi-cat">Стеллажи и витрины</div>
-            <div class="pi-name">Витрина «Эллипс»</div>
-            <p class="pi-desc">Оригинальная напольная витрина в форме эллипса. Три стеклянных уровня в изящной золотой раме. Идеальна для ювелирных украшений, косметики и аксессуаров.</p>
-            <div class="pi-specs">
-              <span class="spec">Золото / стекло</span><span class="spec">Под заказ</span>
-            </div>
+            <div class="pi-cat">Настенные системы</div>
+            <div class="pi-name">Настенная система «Лофт»</div>
+            <p class="pi-desc">Модульная система в чёрном цвете: вертикальные рейки, штанги и полки-кронштейны. Позволяет совмещать вешала и полки в одной секции. Гибкая планировка.</p>
+            <div class="pi-specs"><span class="spec">Чёрный матовый</span><span class="spec">Штанги + полки</span><span class="spec">Крепление к стене</span></div>
           </div>
         </div>
 
-        <!-- 8: Стойка Каскад -->
+        <!-- 13: Корзина для распродаж «Маркет» белая -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">07 / 10</span></div>
-          <div class="pp"><img src="ci/p07.jpg" alt=""></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">12 / 16</span></div>
+          <div class="pp"><img src="ci/p12.jpg" alt="Корзина для распродаж «Маркет» белая"></div>
           <div class="pi">
-            <div class="pi-cat">Стойки для аксессуаров</div>
-            <div class="pi-name">Стойка «Каскад»</div>
-            <p class="pi-desc">Декоративная стойка с изогнутыми крючками для экспозиции сумок, ремней и аксессуаров. До 16 позиций одновременно.</p>
-            <div class="pi-specs">
-              <span class="spec">16 крючков</span><span class="spec">Золото</span><span class="spec">В наличии</span>
-            </div>
+            <div class="pi-cat">Торговые корзины</div>
+            <div class="pi-name">Корзина для распродаж «Маркет» белая</div>
+            <p class="pi-desc">Сетчатая корзина на колёсах для акционных товаров, обуви, текстиля и игрушек. Покрытие устойчиво к царапинам. Легко перемещается по залу.</p>
+            <div class="pi-specs"><span class="spec">Белая</span><span class="spec">Сетчатая</span><span class="spec">На колёсах</span></div>
           </div>
         </div>
 
-        <!-- 9: Стойка Арка мобильная -->
+        <!-- 14: Корзина для распродаж «Маркет» чёрная -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">08 / 10</span></div>
-          <div class="pp"><img src="ci/p08.jpg" alt=""></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">13 / 16</span></div>
+          <div class="pp"><img src="ci/p13.jpg" alt="Корзина для распродаж «Маркет» чёрная"></div>
           <div class="pi">
-            <div class="pi-cat">Стойки для аксессуаров</div>
-            <div class="pi-name">Стойка «Арка» мобильная</div>
-            <p class="pi-desc">Компактная аркообразная стойка на поворотных роликах. Для навешивания аксессуаров и акцентной выкладки. Легко перемещается по залу.</p>
-            <div class="pi-specs">
-              <span class="spec">30 × 35 × 100 см</span><span class="spec">На роликах</span><span class="spec">Золото</span>
-            </div>
+            <div class="pi-cat">Торговые корзины</div>
+            <div class="pi-name">Корзина для распродаж «Маркет» чёрная</div>
+            <p class="pi-desc">Та же вместительная корзина в чёрном цвете. Удобна для выкладки товаров по акции у входа и кассы. Прочная сварная конструкция на поворотных колёсах.</p>
+            <div class="pi-specs"><span class="spec">Чёрная</span><span class="spec">Сетчатая</span><span class="spec">На колёсах</span></div>
           </div>
         </div>
 
-        <!-- 10: Стойка для обуви -->
+        <!-- 15: Плечики «Коллекция» -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">09 / 10</span></div>
-          <div class="pp"><img src="ci/p09.jpg" alt=""></div>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">14 / 16</span></div>
+          <div class="pp"><img src="ci/p14.jpg" alt="Плечики «Коллекция»"></div>
           <div class="pi">
-            <div class="pi-cat">Стойки для обуви</div>
-            <div class="pi-name">Стойка для обуви «Профи»</div>
-            <p class="pi-desc">Многоуровневая металлическая стойка с кронштейнами для презентации обуви. Передвижная конструкция на роликах.</p>
-            <div class="pi-specs">
-              <span class="spec">Чёрный</span><span class="spec">На колёсах</span><span class="spec">До 30 пар</span>
-            </div>
+            <div class="pi-cat">Плечики</div>
+            <div class="pi-name">Плечики «Коллекция»</div>
+            <p class="pi-desc">Плечики для магазинов одежды: белые, прозрачные, деревянные, чёрные и золотые. Выбор крючков: золото или хром. Подберём под ваш магазин.</p>
+            <div class="pi-specs"><span class="spec">Дерево / акрил</span><span class="spec">Золото / хром</span><span class="spec">Оптом</span></div>
           </div>
         </div>
 
-        <!-- 11: Обзор ассортимента -->
+        <!-- 16: Плечики «Бусины и акрил» -->
         <div class="page">
-          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">10 / 10</span></div>
-          <div class="pp pp-lg"><img src="ci/p10.jpg" alt="" class="cv"></div>
-          <div class="pi pi-sm">
-            <div class="pi-cat">Полный ассортимент</div>
-            <div class="pi-name">Коллекция Khatima</div>
-            <p class="pi-desc">Более 50 моделей: вешала, стеллажи, витрины для обуви, сумок и украшений — в едином стиле.</p>
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">15 / 16</span></div>
+          <div class="pp"><img src="ci/p15.jpg" alt="Плечики «Бусины и акрил»"></div>
+          <div class="pi">
+            <div class="pi-cat">Плечики</div>
+            <div class="pi-name">Плечики «Бусины и акрил»</div>
+            <p class="pi-desc">Прозрачные акриловые и деревянные плечики, а также плечики с золотыми бусинами и атласным бантом. Подходят для платьев, юбок, брюк и аксессуаров.</p>
+            <div class="pi-specs"><span class="spec">Акрил</span><span class="spec">Бусины</span><span class="spec">С зажимами</span></div>
           </div>
         </div>
 
-        <!-- 12: КОНТАКТЫ -->
+        <!-- 17: Комплекты «Верх + низ» -->
+        <div class="page">
+          <div class="ph"><span class="ph-brand">Khatima</span><span class="ph-num">16 / 16</span></div>
+          <div class="pp"><img src="ci/p16.jpg" alt="Комплекты «Верх + низ»"></div>
+          <div class="pi">
+            <div class="pi-cat">Плечики</div>
+            <div class="pi-name">Комплекты «Верх + низ»</div>
+            <p class="pi-desc">Пары плечиков: широкие для верха и с зажимами для юбок и брюк. Прозрачный акрил, дерево, белый и дымчатый цвета. Крючки золотые или хромированные.</p>
+            <div class="pi-specs"><span class="spec">Акрил / дерево</span><span class="spec">Золото / хром</span><span class="spec">С зажимами</span></div>
+          </div>
+        </div>
+
+        <!-- 18: КОНТАКТЫ -->
         <div class="page page-contacts">
-          <img class="ct-logo" src="images/logo_khatima.PNG" alt="Khatima">
-          <div class="ct-d"></div>
-          <div class="ct-l">Свяжитесь с нами</div>
-          <div class="ct-r"><div class="ct-ic">📞</div><div class="ct-tx"><small>Телефон / WhatsApp</small>+7 (XXX) XXX-XX-XX</div></div>
-          <div class="ct-r"><div class="ct-ic">📍</div><div class="ct-tx"><small>Адрес шоу-рума</small>г. Алматы, ул. Примерная, 1</div></div>
-          <div class="ct-r"><div class="ct-ic">🕐</div><div class="ct-tx"><small>Режим работы</small>Пн–Сб: 9:00 – 19:00</div></div>
-          <div class="ct-tg">Производство &amp; поставка<br>торгового оборудования</div>
+          <div class="cv-frame"></div>
+          <div class="cv-in">
+            <img class="ct-logo" src="images/logo_khatima_light.png" alt="Khatima">
+            <div class="ct-d"></div>
+            <div class="ct-l">Свяжитесь с нами</div>
+            <div class="ct-r"><div class="ct-ic">📞</div><div class="ct-tx"><small>Телефон / WhatsApp</small>+7 (747) 617-28-86</div></div>
+            <div class="ct-r"><div class="ct-ic">📍</div><div class="ct-tx"><small>Адрес</small>г. Алматы, шоссе Северное Кольцо, 120/4<br>2 ряд, бутик 33а</div></div>
+            <div class="ct-r"><div class="ct-ic">🕐</div><div class="ct-tx"><small>Режим работы</small>Вт–Вс: 9:00 – 18:00<br>Понедельник — выходной</div></div>
+            <div class="ct-tg">Оптовые поставки<br>торгового оборудования</div>
+          </div>
         </div>
 
       </div><!-- #book -->
@@ -357,9 +392,9 @@
   </div><!-- #book-wrapper -->
 
   <div id="bottom-bar">
-    <button class="nav-btn disabled" id="btn-prev">&#8249;</button>
-    <span id="page-counter">1 / 13</span>
-    <button class="nav-btn" id="btn-next">&#8250;</button>
+    <button class="nav-btn disabled" id="btn-prev" aria-label="Назад">&#8249;</button>
+    <span id="page-counter">1 / 19</span>
+    <button class="nav-btn" id="btn-next" aria-label="Вперёд">&#8250;</button>
   </div>
 </div>
 
@@ -371,7 +406,7 @@
   var NATURAL_W = 390;
   var NATURAL_H = 700;
   var current   = 0;
-  var TOTAL     = 13;
+  var TOTAL     = 19;
 
   /* ── Scale #book-outer to fit the viewport ── */
   function fitBook() {

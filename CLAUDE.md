@@ -1,51 +1,48 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Руководство для Claude Code (claude.ai/code) при работе с этим репозиторием.
 
-## Project overview
+## Обзор
 
-Static single-page mobile catalog for **Khatima** — a premium retail equipment manufacturer. No build step, no dependencies, no package manager. Open `index.html` directly in a browser to preview.
+Статичный мобильный каталог-«книга» **Khatima** — оптовые поставки торгового оборудования (не производитель; цены в каталоге не показываются). Без сборки, без зависимостей — достаточно открыть `index.html` в браузере.
 
-Deployed on Vercel: push to `master` → auto-deploys to `https://khatimacotalog.vercel.app/`
+Деплой на Vercel: пуш в `master` → автодеплой.
 
-## Architecture
+## Архитектура
 
-Everything lives in one file: [index.html](index.html). Inline CSS, inline JS, all 13 page definitions. No framework, bundler, or external stylesheet.
+Всё в одном файле [index.html](index.html): CSS, JS и все страницы. Перелистывание — библиотека **StPageFlip** (`js/page-flip.min.js`).
 
-**Page system** — pages are `<div class="pg">` elements stacked absolutely inside `#stage` (390×700 px reference frame). JS scales `#stage` via `transform: scale()` to fit any screen (`fit()` function). Only the active page is visible; others carry class `off` (`display: none`).
+Страницы — элементы `<div class="page">` размером 390×700 px. `#book-outer` масштабируется через `transform: scale()` под экран. Количество страниц в JS задаёт `TOTAL` (и стартовый текст в `#page-counter`) — при добавлении/удалении страниц менять их вручную.
 
-**Flip animation** — custom 3D CSS flip, no library. `flip(to, dir)` in the IIFE:
-- `dir > 0` (forward): current page pivots left-edge, folds to `rotateY(-90deg)` with ease-in; incoming page pivots right-edge, unfolds from `rotateY(90deg)` to `0` with ease-out. Overlap at 270 ms, total 640 ms.
-- `dir < 0` (backward): mirrored. `perspective: 1400px` on `#stage-wrap` provides 3D depth.
+**Важно:** StPageFlip перезаписывает `display` у самих `.page`, поэтому flex-раскладка обложки, «О нас» и контактов сделана во внутренних обёртках (`.cv-in`, `.ab-wrap`), а не на `.page`.
 
-**Page order:**
-0. Cover (`.pg-cv`) — dark gradient, no header strip
-1. About (`.pg-ab`) — company info
-2–11. Products — `.ph` header + `.pp` photo + `.pi` info block with `.cat`, `.nam`, `.dsc`, `.tags`
-12. Contacts (`.pg-ct`) — dark gradient, no header strip
+**Порядок страниц:** обложка → «О нас» → 16 товаров → контакты.
 
-**CSS class convention:** short abbreviations — `pg` (page), `ph` (page header), `pp` (photo panel), `pi` (product info), `pp-lg`/`pi-sm` (tall-photo variant), `cv-*` (cover), `ab-*` (about), `ct-*` (contacts), `cat/nam/dsc/tag` (product fields).
+**Дизайн:** светлая палитра (слоновая кость, золото `--gold`, винный `--wine` из логотипа). Цвета и шрифты — CSS-переменные в `:root`. Заголовки — Cormorant Garamond (`fonts/cormorant-garamond.woff2`, подмножество: латиница + кириллица), текст — системный sans.
 
-## Image directories
+## Страница товара
 
-| Dir | Purpose |
-|-----|---------|
-| `ci/` | Active product images used by catalog (`p01.jpg`–`p10.jpg`) |
-| `images/` | Logo (`logo_khatima.PNG`) + original scanned pages (`page_01.webp`–`page_13.webp`, unused) |
-| `img/` | Raw source pool — 80 WhatsApp-exported product photos; pick from here when adding pages |
-| `js/` | `page-flip.min.js` — bundled but not used (replaced by custom animation) |
-
-## Adding a product page
-
-1. Copy the chosen photo from `img/` to `ci/pNN.jpg`
-2. Insert a new `<div class="pg off">` block before the contacts page (index 12), following the pattern of pages 2–11
-3. Update the `<s>` counter in `.ph` on all product pages (e.g. `11 / 11`)
-4. No JS changes needed — `querySelectorAll('.pg')` picks up the new page automatically
-
-## Deployment
-
-```bash
-vercel deploy --prod --yes   # deploy to khatimacotalog.vercel.app
+```html
+<div class="page">
+  <div class="ph">…шапка, номер «NN / 16»…</div>
+  <div class="pp"><img src="ci/pNN.jpg" alt="…"></div>   <!-- pp-t = высокое фото (430px), тогда .pi-t -->
+  <div class="pi">  <!-- pi-cat, pi-name, pi-desc, pi-specs > .spec -->
+</div>
 ```
 
-Vercel project: `khatima_cotalog` (linked via `.vercel/project.json`). Do not switch to a different Vercel project.
+Фото в `ci/` подготовлены заранее: квадрат 900×900 (или 780×860 для `pp-t`) с краями, продолженными по цвету фона, чтобы не было швов.
+
+## Каталог
+
+Вешала: Волна Голд, Волна Сильвер, Стандарт Голд, Стандарт Хром, Минимал, Геометрия, Пагода, Карусель, Ротонда. Настенные системы: Галерея, Лофт. Корзины: «Маркет» белая / чёрная. Плечики: Коллекция, Бусины и акрил, Комплекты «Верх + низ».
+
+## Файлы
+
+| Путь | Назначение |
+|------|-----------|
+| `ci/p01.jpg`–`p16.jpg` | Фото товаров по порядку страниц |
+| `images/logo_khatima_light.png` | Логотип (винный на прозрачном) — используется на сайте |
+| `images/logo_khatima.PNG` | Исходный логотип (светлый на бордовом) |
+| `images/page_*.webp` | Старые сканы каталога, не используются |
+| `fonts/` | Шрифт Cormorant Garamond (woff2) |
+| `js/page-flip.min.js` | StPageFlip |
